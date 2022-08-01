@@ -15,6 +15,7 @@
 #include <sdrplay_api.h>
 
 #include "csv.h"
+#include "config.h"
 
 /**
  * Various helper macros.
@@ -355,16 +356,49 @@ typedef struct sdrplay_conf {
  * \typedef struct global_data
  * All program global state is in this structure.
  */
+
+#pragma pack(show)
+#pragma pack(push, w1, 1)
+#pragma pack(show)
+typedef struct  {
+    uint8_t i;
+    uint8_t q;
+}iq_value;
+
+typedef union {
+    iq_value value;
+    uint16_t word;
+} iq_raw;
+
+#pragma pack(pop, w1)
+#pragma pack(show)
+
+typedef struct {
+    uint8_t i;
+    uint8_t q;
+}iq_value_unpacked;
+
+#pragma pack(show)
+#pragma pack(push, w1, 1)
+#pragma pack(show)
+
+
 typedef struct global_data {
         char              who_am_I [MG_PATH_MAX];   /**< The full name of this program. */
         char              where_am_I [MG_PATH_MAX]; /**< The current directory (no trailing `\\`. not used). */
         uintptr_t         reader_thread;            /**< Device reader thread ID. */
-        CRITICAL_SECTION  data_mutex;               /**< Mutex to synchronize buffer access. */
+        CRITICAL_SECTION  data_mutex;
+        CRITICAL_SECTION  magnitude_mutex;/**< Mutex to synchronize buffer access. */
         CRITICAL_SECTION  print_mutex;              /**< Mutex to synchronize printouts. */
-        uint8_t          *data;                     /**< Raw IQ samples buffer. */
-        uint32_t          data_len;                 /**< Length of raw IQ buffer. */
-        uint16_t         *magnitude;                /**< Magnitude vector. */
-        uint16_t         *magnitude_lut;            /**< I/Q -> Magnitude lookup table. */
+        union rx {
+            const uint8_t          data[RAW_IQ_DATA_LEN];                     /**< Raw IQ samples buffer. */
+            const iq_value iq[RAW_IQ_DATA_LEN / 2];
+            const iq_raw iqraw[RAW_IQ_DATA_LEN / 2];
+        };
+        //uint32_t          data_len;                 /**< Length of raw IQ buffer. */
+         uint16_t         magnitude[RAW_IQ_DATA_LEN];                /**< Magnitude vector. */
+        //uint16_t         *magnitude_lut;            /**< I/Q -> Magnitude lookup table. */
+        //uint16_t[] magnitude_lut_pre
         int               fd;                       /**< `--infile` option file descriptor. */
         volatile bool     exit;                     /**< Exit from the main loop when true. */
         volatile bool     data_ready;               /**< Data ready to be processed. */
@@ -438,6 +472,9 @@ typedef struct global_data {
         aircraft_CSV *aircraft_list;
         uint32_t      aircraft_num_CSV;
       } global_data;
+
+#pragma pack(pop, w1)
+#pragma pack(show)
 
 extern global_data Modes;
 

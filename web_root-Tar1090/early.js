@@ -2,7 +2,7 @@
 "use strict";
 
 let Dump1090Version = "unknown version";
-let RefreshInterval = 1000;
+let RefreshInterval = 100;
 let globeSimLoad = 6;
 let adsbexchange = false;
 let enable_uat = false;
@@ -12,7 +12,7 @@ let nHistoryItems = 0;
 let HistoryItemsReturned = 0;
 let chunkNames = [];
 let PositionHistoryBuffer = [];
-var	receiverJson;
+var receiverJson;
 let deferHistory = [];
 let historyLoaded = jQuery.Deferred();
 let configureReceiver = jQuery.Deferred();
@@ -51,19 +51,19 @@ try {
     // let's make this case insensitive
     usp = {
         params: new URLSearchParams(),
-        has: function(s) {return this.params.has(s.toLowerCase());},
-        get: function(s) {return this.params.get(s.toLowerCase());},
+        has: function(s) { return this.params.has(s.toLowerCase()); },
+        get: function(s) { return this.params.get(s.toLowerCase()); },
         getFloat: function(s) {
             if (!this.params.has(s.toLowerCase())) return null;
-            const param =  this.params.get(s.toLowerCase());
+            const param = this.params.get(s.toLowerCase());
             if (!param) return null;
             const val = parseFloat(param);
             if (isNaN(val)) return null;
             return val;
         },
-        getInt: function(s)  {
+        getInt: function(s) {
             if (!this.params.has(s.toLowerCase())) return null;
-            const param =  this.params.get(s.toLowerCase());
+            const param = this.params.get(s.toLowerCase());
             if (!param) return null;
             const val = parseInt(param, 10);
             if (isNaN(val)) return null;
@@ -77,8 +77,8 @@ try {
 } catch (error) {
     console.error(error);
     usp = {
-        has: function() {return false;},
-        get: function() {return null;},
+        has: function() { return false; },
+        get: function() { return null; },
     }
 }
 
@@ -89,42 +89,42 @@ var loStore;
 // It will work just like localStorage, except for the persistant storage part.
 
 var fakeLocalStorage = function() {
-  var fakeLocalStorage = {};
-  var storage;
-  // If Storage exists we modify it to write to our fakeLocalStorage object instead.
-  // If Storage does not exist we create an empty object.
-  loStore = {};
-  storage = loStore;
-  // For older IE
-  if (!window.location.origin) {
-    window.location.origin = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port: '');
-  }
-  var dispatchStorageEvent = function(key, newValue) {
-    var oldValue = (key == null) ? null : storage.getItem(key); // `==` to match both null and undefined
-    var url = location.href.substr(location.origin.length);
-    var storageEvent = document.createEvent('StorageEvent'); // For IE, http://stackoverflow.com/a/25514935/1214183
-    storageEvent.initStorageEvent('storage', false, false, key, oldValue, newValue, url, null);
-    window.dispatchEvent(storageEvent);
-  };
-  storage.key = function(i) {
-    var key = Object.keys(fakeLocalStorage)[i];
-    return typeof key === 'string' ? key : null;
-  };
-  storage.getItem = function(key) {
-    return typeof fakeLocalStorage[key] === 'string' ? fakeLocalStorage[key] : null;
-  };
-  storage.setItem = function(key, value) {
-    dispatchStorageEvent(key, value);
-    fakeLocalStorage[key] = String(value);
-  };
-  storage.removeItem = function(key) {
-    dispatchStorageEvent(key, null);
-    delete fakeLocalStorage[key];
-  };
-  storage.clear = function() {
-    dispatchStorageEvent(null, null);
-    fakeLocalStorage = {};
-  };
+    var fakeLocalStorage = {};
+    var storage;
+    // If Storage exists we modify it to write to our fakeLocalStorage object instead.
+    // If Storage does not exist we create an empty object.
+    loStore = {};
+    storage = loStore;
+    // For older IE
+    if (!window.location.origin) {
+        window.location.origin = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
+    }
+    var dispatchStorageEvent = function(key, newValue) {
+        var oldValue = (key == null) ? null : storage.getItem(key); // `==` to match both null and undefined
+        var url = location.href.substr(location.origin.length);
+        var storageEvent = document.createEvent('StorageEvent'); // For IE, http://stackoverflow.com/a/25514935/1214183
+        storageEvent.initStorageEvent('storage', false, false, key, oldValue, newValue, url, null);
+        window.dispatchEvent(storageEvent);
+    };
+    storage.key = function(i) {
+        var key = Object.keys(fakeLocalStorage)[i];
+        return typeof key === 'string' ? key : null;
+    };
+    storage.getItem = function(key) {
+        return typeof fakeLocalStorage[key] === 'string' ? fakeLocalStorage[key] : null;
+    };
+    storage.setItem = function(key, value) {
+        dispatchStorageEvent(key, value);
+        fakeLocalStorage[key] = String(value);
+    };
+    storage.removeItem = function(key) {
+        dispatchStorageEvent(key, null);
+        delete fakeLocalStorage[key];
+    };
+    storage.clear = function() {
+        dispatchStorageEvent(null, null);
+        fakeLocalStorage = {};
+    };
 };
 
 
@@ -151,7 +151,7 @@ if (adsbexchange && window.self != window.top) {
 
 let firstError = true;
 if (usp.has('showerrors') || usp.has('jse')) {
-    window.onerror = function (msg, url, lineNo, columnNo, error) {
+    window.onerror = function(msg, url, lineNo, columnNo, error) {
         if (firstError) {
             firstError = false;
             let splat = '';
@@ -160,12 +160,12 @@ if (usp.has('showerrors') || usp.has('jse')) {
             if (error && error.stack)
                 splat += '\n' + error.stack;
             jQuery("#js_error").text(splat);
-            jQuery("#js_error").css('display','block');
+            jQuery("#js_error").css('display', 'block');
         }
         return false;
     }
 } else {
-    window.onerror = function (msg, url, lineNo, columnNo, error) {
+    window.onerror = function(msg, url, lineNo, columnNo, error) {
         return false;
     }
 }
@@ -228,6 +228,7 @@ if (usp.has('l3harris') || usp.has('ift')) {
 if (usp.has('r') || usp.has('replay')) {
     replay = true;
 }
+
 function arraybufferRequest() {
     let xhrOverride = new XMLHttpRequest();
     xhrOverride.responseType = 'arraybuffer';
@@ -282,8 +283,7 @@ if (usp.has('heatmap') || usp.has('realHeat')) {
         heatmap.max = val;
     if (usp.has('heatManualRedraw'))
         heatmap.manualRedraw = true;
-}
-{
+} {
     let value;
     if ((value = usp.getFloat('pTracksInterval')) != null) {
         pTracksInterval = value;
@@ -303,35 +303,38 @@ function getDay(date) {
     else
         return date.getDate();
 }
+
 function zuluTime(date) {
-    return date.getUTCHours().toString().padStart(2,'0')
-        + ":" + date.getUTCMinutes().toString().padStart(2,'0')
-        + ":" + date.getUTCSeconds().toString().padStart(2,'0');
+    return date.getUTCHours().toString().padStart(2, '0') +
+        ":" + date.getUTCMinutes().toString().padStart(2, '0') +
+        ":" + date.getUTCSeconds().toString().padStart(2, '0');
 }
-const TIMEZONE = new Date().toLocaleTimeString(undefined,{timeZoneName:'short'}).split(' ')[2];
+const TIMEZONE = new Date().toLocaleTimeString(undefined, { timeZoneName: 'short' }).split(' ')[2];
+
 function localTime(date) {
-    return date.getHours().toString().padStart(2,'0')
-        + ":" + date.getMinutes().toString().padStart(2,'0')
-        + ":" + date.getSeconds().toString().padStart(2,'0');
+    return date.getHours().toString().padStart(2, '0') +
+        ":" + date.getMinutes().toString().padStart(2, '0') +
+        ":" + date.getSeconds().toString().padStart(2, '0');
 }
+
 function zDateString(date) {
-    let string = date.getUTCFullYear() + '-'
-        + (date.getUTCMonth() + 1).toString().padStart(2, '0') + '-'
-        + date.getUTCDate().toString().padStart(2, '0')
+    let string = date.getUTCFullYear() + '-' +
+        (date.getUTCMonth() + 1).toString().padStart(2, '0') + '-' +
+        date.getUTCDate().toString().padStart(2, '0')
     return string;
 }
 
 function sDateString(date) {
-    let string = date.getUTCFullYear() + '/'
-        + (date.getUTCMonth() + 1).toString().padStart(2, '0') + '/'
-        + date.getUTCDate().toString().padStart(2, '0')
+    let string = date.getUTCFullYear() + '/' +
+        (date.getUTCMonth() + 1).toString().padStart(2, '0') + '/' +
+        date.getUTCDate().toString().padStart(2, '0')
     return string;
 }
 
 function lDateString(date) {
-    let string = date.getFullYear() + '-'
-        + (date.getMonth() + 1).toString().padStart(2, '0') + '-'
-        + date.getDate().toString().padStart(2, '0')
+    let string = date.getFullYear() + '-' +
+        (date.getMonth() + 1).toString().padStart(2, '0') + '-' +
+        date.getDate().toString().padStart(2, '0')
     return string;
 }
 
@@ -353,7 +356,7 @@ if (uuid) {
         timeout: 10000,
     });
     test_chunk_defer = jQuery.ajax({
-        url:'chunks/chunks.json',
+        url: 'chunks/chunks.json',
         cache: false,
         dataType: 'json',
         timeout: 4000,
@@ -380,6 +383,7 @@ jQuery.getJSON(databaseFolder + "/ranges.js").done(function(ranges) {
 
 
 let heatmapLoadingState = {};
+
 function loadHeatChunk() {
     if (heatmapLoadingState.index > heatChunks.length) {
         heatmapDefer.resolve();
@@ -401,7 +405,7 @@ function loadHeatChunk() {
         num: heatmapLoadingState.index,
         xhr: arraybufferRequest,
     });
-    req.done(function (responseData) {
+    req.done(function(responseData) {
         heatChunks[this.num] = responseData;
         loadHeatChunk();
     });
@@ -431,9 +435,11 @@ if (!heatmap) {
 
 function historyQueued() {
     if (!globeIndex && !uuid) {
-        let request = jQuery.ajax({ url: 'upintheair.json',
+        let request = jQuery.ajax({
+            url: 'upintheair.json',
             cache: true,
-            dataType: 'json' });
+            dataType: 'json'
+        });
         request.done(function(data) {
             calcOutlineData = data;
         });
@@ -452,19 +458,19 @@ if (uuid != null) {
     configureReceiver.resolve();
     //console.time("Downloaded History");
 } else {
-    get_receiver_defer.fail(function(data){
+    get_receiver_defer.fail(function(data) {
 
         setTimeout(function() {
             jQuery("#loader").addClass("hidden");
             jQuery("#update_error_detail").text("Seems the decoder / receiver / backend isn't working correctly!");
-            jQuery("#update_error").css('display','block');
+            jQuery("#update_error").css('display', 'block');
         }, 2000);
 
         setTimeout(function() {
             location.reload();
         }, 10000);
     });
-    get_receiver_defer.done(function(data){
+    get_receiver_defer.done(function(data) {
         receiverJson = data;
         Dump1090Version = data.version;
         RefreshInterval = data.refresh;
@@ -526,17 +532,21 @@ function get_history() {
 
     if (nHistoryItems > 0) {
         nHistoryItems++;
-        let request = jQuery.ajax({ url: 'data/aircraft.json',
-            timeout: historyTimeout*800,
+        let request = jQuery.ajax({
+            url: 'data/aircraft.json',
+            timeout: historyTimeout * 800,
             cache: false,
-            dataType: 'json' });
+            dataType: 'json'
+        });
         deferHistory.push(request);
         if (enable_uat) {
             nHistoryItems++;
-            request = jQuery.ajax({ url: 'chunks/978.json',
-                timeout: historyTimeout*800,
+            request = jQuery.ajax({
+                url: 'chunks/978.json',
+                timeout: historyTimeout * 800,
                 cache: false,
-                dataType: 'json' });
+                dataType: 'json'
+            });
             deferHistory.push(request);
         }
     }
@@ -545,7 +555,7 @@ function get_history() {
         if (nHistoryItems > 0) {
             console.log("Starting to load history (" + nHistoryItems + " chunks)");
             console.time("Downloaded History");
-            for (let i = chunkNames.length-1; i >= 0; i--) {
+            for (let i = chunkNames.length - 1; i >= 0; i--) {
                 get_history_item(i);
             }
         }
@@ -553,7 +563,7 @@ function get_history() {
         console.log("Starting to load history (" + nHistoryItems + " items)");
         console.time("Downloaded History");
         // Queue up the history file downloads
-        for (let i = nHistoryItems-1; i >= 0; i--) {
+        for (let i = nHistoryItems - 1; i >= 0; i--) {
             get_history_item(i);
         }
     }
@@ -564,35 +574,38 @@ function get_history_item(i) {
     let request;
 
     if (HistoryChunks) {
-        request = jQuery.ajax({ url: 'chunks/' + chunkNames[i],
+        request = jQuery.ajax({
+            url: 'chunks/' + chunkNames[i],
             timeout: historyTimeout * 1000,
             dataType: 'json'
         });
     } else {
 
-        request = jQuery.ajax({ url: 'data/history_' + i + '.json',
+        request = jQuery.ajax({
+            url: 'data/history_' + i + '.json',
             timeout: nHistoryItems * 80, // Allow 40 ms load time per history entry
             cache: false,
-            dataType: 'json' });
+            dataType: 'json'
+        });
     }
     deferHistory.push(request);
 }
 
 function getCookie(cname) {
-  let name = cname + "=";
-  let ca = decodeURIComponent(document.cookie).split(';');
-  for(let i = 0; i < ca.length; i++) {
-    let c = ca[i];
-    while (c.charAt(0) == ' ') { c = c.substring(1); }
-    if (c.indexOf(name) == 0) { return c.substring(name.length, c.length); }
-  }
-  return "";
+    let name = cname + "=";
+    let ca = decodeURIComponent(document.cookie).split(';');
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) == ' ') { c = c.substring(1); }
+        if (c.indexOf(name) == 0) { return c.substring(name.length, c.length); }
+    }
+    return "";
 }
 
 function setCookie(cname, cvalue, exdays) {
     let d = new Date();
-    d.setTime(d.getTime() + (exdays*24*60*60*1000));
-    let expires = "expires="+ d.toUTCString();
+    d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+    let expires = "expires=" + d.toUTCString();
     document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
 }
 
@@ -602,11 +615,11 @@ function globeRateUpdate() {
         dynGlobeRate = true;
         const cookieExp = getCookie('adsbx_sid').split('_')[0];
         const ts = new Date().getTime();
-        if (!cookieExp || cookieExp < ts + 3600*1000)
-            setCookie('adsbx_sid', ((ts + 2*86400*1000) + '_' + Math.random().toString(36).substring(2, 15)), 2);
+        if (!cookieExp || cookieExp < ts + 3600 * 1000)
+            setCookie('adsbx_sid', ((ts + 2 * 86400 * 1000) + '_' + Math.random().toString(36).substring(2, 15)), 2);
     }
     if (dynGlobeRate) {
-        jQuery.ajax({url:'/globeRates.json', cache: false, dataType: 'json', }).done(function(data) {
+        jQuery.ajax({ url: '/globeRates.json', cache: false, dataType: 'json', }).done(function(data) {
             if (data.simload != null)
                 globeSimLoad = data.simload;
             if (data.refresh != null && globeIndex)
@@ -635,10 +648,10 @@ function Toggle(arg) {
 Toggle.prototype.init = function() {
     if (this.container) {
         jQuery(this.container).append((
-            '<div class="settingsOptionContainer">'
-            + '<div class="settingsCheckbox" id="' + this.key + '_cb' + '"></div>'
-            + '<div class="settingsText">' + this.display + '</div>'
-            + '</div>'));
+            '<div class="settingsOptionContainer">' +
+            '<div class="settingsCheckbox" id="' + this.key + '_cb' + '"></div>' +
+            '<div class="settingsText">' + this.display + '</div>' +
+            '</div>'));
     }
 
     if (this.button)
@@ -679,68 +692,69 @@ Toggle.prototype.toggle = function(override, init) {
         loStore[this.key] = this.state;
 }
 
-Toggle.prototype.restore = function () {
+Toggle.prototype.restore = function() {
     if (this.setState)
         this.setState(this.state);
 }
 
-Toggle.prototype.hideCheckbox = function () {
+Toggle.prototype.hideCheckbox = function() {
     if (this.checkbox)
         jQuery(this.checkbox).parent().hide();
 }
 
 // From https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/keys
 if (!Object.keys) {
-  Object.keys = (function() {
-    'use strict';
-    var hasOwnProperty = Object.prototype.hasOwnProperty,
-        hasDontEnumBug = !({ toString: null }).propertyIsEnumerable('toString'),
-        dontEnums = [
-          'toString',
-          'toLocaleString',
-          'valueOf',
-          'hasOwnProperty',
-          'isPrototypeOf',
-          'propertyIsEnumerable',
-          'constructor'
-        ],
-        dontEnumsLength = dontEnums.length;
+    Object.keys = (function() {
+        'use strict';
+        var hasOwnProperty = Object.prototype.hasOwnProperty,
+            hasDontEnumBug = !({ toString: null }).propertyIsEnumerable('toString'),
+            dontEnums = [
+                'toString',
+                'toLocaleString',
+                'valueOf',
+                'hasOwnProperty',
+                'isPrototypeOf',
+                'propertyIsEnumerable',
+                'constructor'
+            ],
+            dontEnumsLength = dontEnums.length;
 
-    return function(obj) {
-      if (typeof obj !== 'function' && (typeof obj !== 'object' || obj === null)) {
-        throw new TypeError('Object.keys called on non-object');
-      }
+        return function(obj) {
+            if (typeof obj !== 'function' && (typeof obj !== 'object' || obj === null)) {
+                throw new TypeError('Object.keys called on non-object');
+            }
 
-      var result = [], prop, i;
+            var result = [],
+                prop, i;
 
-      for (prop in obj) {
-        if (hasOwnProperty.call(obj, prop)) {
-          result.push(prop);
-        }
-      }
+            for (prop in obj) {
+                if (hasOwnProperty.call(obj, prop)) {
+                    result.push(prop);
+                }
+            }
 
-      if (hasDontEnumBug) {
-        for (i = 0; i < dontEnumsLength; i++) {
-          if (hasOwnProperty.call(obj, dontEnums[i])) {
-            result.push(dontEnums[i]);
-          }
-        }
-      }
-      return result;
-    };
-  }());
+            if (hasDontEnumBug) {
+                for (i = 0; i < dontEnumsLength; i++) {
+                    if (hasOwnProperty.call(obj, dontEnums[i])) {
+                        result.push(dontEnums[i]);
+                    }
+                }
+            }
+            return result;
+        };
+    }());
 }
 
 if (!Object.entries) {
-  Object.entries = function( obj ){
-    var ownProps = Object.keys( obj ),
-        i = ownProps.length,
-        resArray = new Array(i); // preallocate the Array
-    while (i--)
-      resArray[i] = [ownProps[i], obj[ownProps[i]]];
+    Object.entries = function(obj) {
+        var ownProps = Object.keys(obj),
+            i = ownProps.length,
+            resArray = new Array(i); // preallocate the Array
+        while (i--)
+            resArray[i] = [ownProps[i], obj[ownProps[i]]];
 
-    return resArray;
-  };
+        return resArray;
+    };
 }
 
 const filters = {};
@@ -764,18 +778,19 @@ Filter.prototype.reset = function() {
 
 Filter.prototype.init = function() {
     jQuery(this.container).append((
-        '<tr><td><form id="'+ this.id +'">'
-        + '<div class="infoBlockTitleText">Filter by '+ this.name +':</div>'
-        + '<input id="'+ this.id+ '_input" name="textInput" type="text" class="searchInput" maxlength="4096">'
-        + '<button class="formButton" type="submit">Filter</button>'
-        + '<button class="formButton" type="reset">Reset</button>'
-        + '</form></td></tr>'
+        '<tr><td><form id="' + this.id + '">' +
+        '<div class="infoBlockTitleText">Filter by ' + this.name + ':</div>' +
+        '<input id="' + this.id + '_input" name="textInput" type="text" class="searchInput" maxlength="4096">' +
+        '<button class="formButton" type="submit">Filter</button>' +
+        '<button class="formButton" type="reset">Reset</button>' +
+        '</form></td></tr>'
     ));
     jQuery('#' + this.id).on('submit', this.update);
     jQuery('#' + this.id).on('reset', this.reset);
 }
 
 let custom_layers = new ol.Collection();
+
 function add_kml_overlay(url, name, opacity) {
     custom_layers.push(new ol.layer.Vector({
         source: new ol.source.Vector({
